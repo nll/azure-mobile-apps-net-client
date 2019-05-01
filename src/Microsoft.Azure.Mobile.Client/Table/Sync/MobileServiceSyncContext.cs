@@ -245,9 +245,6 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 throw new ArgumentException("The supported table options does not include top.", "query");
             }
 
-            // let us not burden the server to calculate the count when we don't need it for pull
-            queryDescription.IncludeTotalCount = false;
-
             using (var store = StoreChangeTrackerFactory.CreateTrackedStore(this.Store, StoreOperationSource.ServerPull, this.storeTrackingOptions, this.client.EventManager, this.settings))
             {
                 var action = new PullAction(table, tableKind, this, queryId, queryDescription, parameters, relatedTables,
