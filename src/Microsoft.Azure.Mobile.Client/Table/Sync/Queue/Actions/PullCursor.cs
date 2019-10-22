@@ -33,6 +33,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             this.initialSkip = query.Skip.GetValueOrDefault();
         }
 
+        public void Update(QueryResult result)
+        {
+            if (result.TotalCount != -1)
+            {
+                this.Remaining = (int) (result.TotalCount - this.totalRead);
+            }
+        }
+
         /// <summary>
         /// Called when ever an item is processed from result
         /// </summary>
