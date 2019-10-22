@@ -82,6 +82,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                     : parameters;
                 
                 result = await this.Table.ReadAsync(query, MobileServiceTable.IncludeDeleted(queryParameters), this.Table.Features);
+                this.cursor.Update(result);
+
                 await this.ProcessAll(result.Values); // process the first batch
 
                 result = await FollowNextLinks(result);
@@ -159,6 +161,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 this.CancellationToken.ThrowIfCancellationRequested();
 
                 result = await this.Table.ReadAsync(result.NextLink);
+                this.cursor.Update(result);
                 await this.ProcessAll(result.Values); // process the results as soon as we've gotten them
             }
             return result;
