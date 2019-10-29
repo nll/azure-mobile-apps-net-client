@@ -76,7 +76,12 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
                 {
                     query = MobileServiceUrlBuilder.CombinePathAndQuery(this.Query.UriPath, query);
                 }
-                result = await this.Table.ReadAsync(query, MobileServiceTable.IncludeDeleted(parameters), this.Table.Features);
+
+                var queryParameters = this.strategy.RequiresDeleted()
+                    ? MobileServiceTable.IncludeDeleted(parameters)
+                    : parameters;
+                
+                result = await this.Table.ReadAsync(query, MobileServiceTable.IncludeDeleted(queryParameters), this.Table.Features);
                 await this.ProcessAll(result.Values); // process the first batch
 
                 result = await FollowNextLinks(result);

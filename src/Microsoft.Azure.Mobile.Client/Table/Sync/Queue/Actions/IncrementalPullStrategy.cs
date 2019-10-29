@@ -21,6 +21,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         private DateTimeOffset maxUpdatedAt;
         private DateTimeOffset deltaToken;
+        private bool hasDeltaToken;
 
         public IncrementalPullStrategy(MobileServiceTable table,
                                        MobileServiceTableQueryDescription query,
@@ -42,6 +43,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         public override async Task InitializeAsync()
         {
             this.maxUpdatedAt = await this.settings.GetDeltaTokenAsync(this.Query.TableName, this.queryId);
+            this.hasDeltaToken = await this.settings.HasDeltaTokenAsync(this.Query.TableName, this.queryId);
             this.UpdateDeltaToken();
 
             await base.InitializeAsync();
@@ -90,8 +92,14 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             return this.SaveMaxUpdatedAtAsync();
         }
 
+        public override bool RequiresDeleted()
+        {
+            return this.hasDeltaToken;
+        }
+
         private async Task SaveMaxUpdatedAtAsync()
         {
+            this.hasDeltaToken = true;
             if (this.maxUpdatedAt > this.deltaToken)
             {
                 await this.settings.SetDeltaTokenAsync(this.Query.TableName, this.queryId, this.maxUpdatedAt);

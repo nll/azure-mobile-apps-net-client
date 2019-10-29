@@ -84,5 +84,10 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         {
             return Task.FromResult(0);
         }
+
+        public virtual bool RequiresDeleted()
+        {
+            return false;
+        }
     }
 }
