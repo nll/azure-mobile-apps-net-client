@@ -1,7 +1,7 @@
 <Project>
 	<PropertyGroup>
 		<VersionPrefix>4.1.2</VersionPrefix>
-		<VersionSuffix>alpha.3</VersionSuffix>
+		<VersionSuffix>alpha.4</VersionSuffix>
 		<Authors>Microsoft; Nuno Luis</Authors>
 		<PackageLicenseUrl>http://go.microsoft.com/fwlink/?LinkId=286110</PackageLicenseUrl>
 		<PackageProjectUrl>https://github.com/nll/azure-mobile-apps-net-client</PackageProjectUrl>
@@ -11,4 +11,18 @@
 		<PackageTags>azure;mobile;apps;services</PackageTags>
 		<Company>Microsoft, mobile-center, Nll</Company>
 	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)'=='Release' ">
+		<!-- Publish the repository URL in the built .nupkg (in the NuSpec <Repository> element) -->
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<!-- Embed source files that are not tracked by the source control manager in the PDB -->
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<!-- Include PDB in the built .nupkg -->
+		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+		<!-- Build symbol package (.snupkg) to distribute the PDB containing Source Link -->
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
+	<ItemGroup Condition=" '$(Configuration)'=='Release' ">
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-19367-01" PrivateAssets="All" />
+	</ItemGroup>
 </Project>
