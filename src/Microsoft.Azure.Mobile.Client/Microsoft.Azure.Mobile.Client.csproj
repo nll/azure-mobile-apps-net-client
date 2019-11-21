@@ -16,19 +16,19 @@
     <DebugType>portable</DebugType>
     <RootNamespace>Microsoft.WindowsAzure.MobileServices</RootNamespace>
     <PackageId>Nll.Azure.Mobile.Client</PackageId>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
   </PropertyGroup>
   <ItemGroup>
     <!-- Need this to see the parent refs to Auth -->
     <ProjectCapability Include="ShowFilesOutsideOfProject" />
     <!-- This None is here so the conditinonally included files show up in the Solution Explorer -->
-    <None Include="**\*.cs;**\*.xml;**\*.axml" Exclude="obj\**\*.*;bin\**\*.*" />
+    <!-- <None Include="**\*.cs;**\*.xml;**\*.axml" Exclude="obj\**\*.*;bin\**\*.*" /> -->
     <None Include="..\External\Xamarin.Auth\source\Xamarin.Auth.LinkSource\**\*.cs" Exclude="**\AssemblyInfo.cs" />
     <None Include="..\External\Xamarin.Auth\source\Xamarin.Auth.XamarinIOS\**\*.cs" Exclude="**\AssemblyInfo.cs" />
     <None Include="..\External\Xamarin.Auth\source\Xamarin.Auth.XamarinAndroid\**\*.cs" Exclude="**\AssemblyInfo.cs" />
-    <Compile Remove="Platforms\**\*.*" />
-    <Compile Remove="Features\**\*.*" />
+    <Compile Include="**\*.cs;" Exclude="obj\**\*.*;bin\**\*.*;Platforms\**\*.*;Features\**\*.*" />
     <EmbeddedResource Include="Properties\*.rd.xml" />
-    <Compile Update="Resources.Designer.cs" DesignTime="true" AutoGen="true" DependentUpon="Resources.resx" />
     <EmbeddedResource Update="Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
   </ItemGroup>
 
