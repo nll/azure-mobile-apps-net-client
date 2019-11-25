@@ -630,6 +630,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             sqlite3_stmt statement = SQLitePCLRawHelpers.GetSqliteStatement(sql, connection);
             using (statement)
             {
+                ColumnInfo[] columnInfos = null;
                 foreach (KeyValuePair<string, object> parameter in parameters)
                 {
                     var index = raw.sqlite3_bind_parameter_index(statement, parameter.Key);
@@ -638,7 +639,11 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                 int rc;
                 while ((rc = raw.sqlite3_step(statement)) == raw.SQLITE_ROW)
                 {
-                    var row = ReadRow(table, statement);
+                    if (columnInfos == null)
+                    {
+                        columnInfos = GetColumnInfos(table, statement);
+                    }
+                    var row = ReadRow(columnInfos, statement);
                     rows.Add(row);
                 }
 
@@ -647,17 +652,53 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
             return rows;
         }
-
-        private JObject ReadRow(TableDefinition table, sqlite3_stmt statement)
+        
+        private struct ColumnInfo
         {
-            var row = new JObject();
-            for (int i = 0; i < raw.sqlite3_column_count(statement); i++)
+            internal readonly string Name;
+            internal readonly ColumnDefinition ColumnDefinition;
+
+            public ColumnInfo(string name, ColumnDefinition columnDefinition)
+            {
+                Name = name;
+                ColumnDefinition = columnDefinition;
+            }
+        }
+
+        private ColumnInfo[] GetColumnInfos(TableDefinition table, sqlite3_stmt statement)
+        {
+            int count = raw.sqlite3_column_count(statement);
+            ColumnInfo[] result = new ColumnInfo[count];
+            for (int i = 0; i < count; i++)
             {
                 string name = raw.sqlite3_column_name(statement, i);
+                if (table.TryGetValue(name, out var column))
+                {
+                    result[i] = new ColumnInfo(name, column);
+                }
+                else
+                {
+                    result[i] = new ColumnInfo(name, null);
+                }
+            }
+
+            return result;
+        }
+
+        private JObject ReadRow(ColumnInfo[] columnInfos, sqlite3_stmt statement)
+        {
+            var row = new JObject();
+            int count = raw.sqlite3_column_count(statement);
+            for (int i = 0; i < count; i++)
+            {
+
+                ColumnInfo columnInfo = columnInfos[i];
+                string name = columnInfo.Name;
+                ColumnDefinition column = columnInfo.ColumnDefinition;
+
                 object value = SQLitePCLRawHelpers.GetValue(statement, i);
 
-                ColumnDefinition column;
-                if (table.TryGetValue(name, out column))
+                if (column != null)
                 {
                     JToken jVal = SqlHelpers.DeserializeValue(value, column.StoreType, column.JsonType);
                     row[name] = jVal;
