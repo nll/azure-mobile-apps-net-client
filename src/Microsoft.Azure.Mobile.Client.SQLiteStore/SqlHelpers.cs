@@ -155,7 +155,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             return string.Format("[{0}]", memberName);
         }
 
-        private static bool IsNumberType(string storeType)
+        internal static bool IsNumberType(string storeType)
         {
             return storeType == SqlColumnType.Integer ||
                     storeType == SqlColumnType.Numeric ||
@@ -163,13 +163,13 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                     storeType == SqlColumnType.DateTime;
         }
 
-        private static bool IsRealType(string storeType)
+        internal static bool IsRealType(string storeType)
         {
             return storeType == SqlColumnType.Real ||
                     storeType == SqlColumnType.Float;
         }
 
-        private static bool IsTextType(string storeType)
+        internal static bool IsTextType(string storeType)
         {
             return storeType == SqlColumnType.Text ||
                     storeType == SqlColumnType.Blob ||
@@ -179,7 +179,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                     storeType == SqlColumnType.TimeSpan;
         }
 
-        private static object SerializeAsNumber(JToken value, JTokenType columnType)
+        internal static object SerializeAsNumber(JToken value, JTokenType columnType)
         {
             if (columnType == JTokenType.Date)
             {
@@ -188,12 +188,12 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             return value.Value<long>();
         }
 
-        private static double SerializeAsReal(JToken value, JTokenType columnType)
+        internal static double SerializeAsReal(JToken value, JTokenType columnType)
         {
             return value.Value<double>();
         }
 
-        private static string SerializeAsText(JToken value, JTokenType columnType)
+        internal static string SerializeAsText(JToken value, JTokenType columnType)
         {
             if (columnType == JTokenType.Bytes && value.Type == JTokenType.Bytes)
             {
@@ -203,7 +203,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             return value.ToString();
         }
 
-        private static JToken ParseText(JTokenType type, object value)
+        internal static JToken ParseText(JTokenType type, object value)
         {
             string strValue = value as string;
             if (value == null)
@@ -235,7 +235,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             return strValue;
         }
 
-        private static JToken ParseReal(JTokenType type, object value)
+        internal static JToken ParseReal(JTokenType type, object value)
         {
             double dblValue = Convert.ToDouble(value);
             if (type == JTokenType.Date) // for compatibility reason i.e. in earlier release datetime was serialized as real type
@@ -246,7 +246,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             return dblValue;
         }
 
-        private static JToken ParseNumber(JTokenType type, object value)
+        internal static JToken ParseNumber(JTokenType type, object value)
         {
             if (type == JTokenType.Date)
             {

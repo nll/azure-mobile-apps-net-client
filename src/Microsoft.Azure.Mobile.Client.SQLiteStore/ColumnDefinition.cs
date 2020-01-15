@@ -3,6 +3,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using Microsoft.WindowsAzure.MobileServices.SQLiteStore.Parsers;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
@@ -12,12 +13,15 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
     /// </summary>
     public class ColumnDefinition
     {
+
         public string Name { get; private set; }
 
         public JTokenType JsonType { get; private set; }
 
         public string StoreType { get; private set; }
 
+        private SqlParser sqlParser;
+        internal SqlParser SqlParser => sqlParser ?? (sqlParser = SqlParser.Create(StoreType, JsonType));
 
         public ColumnDefinition(string name, JTokenType jsonType, string storeType)
         {

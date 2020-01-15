@@ -700,7 +700,7 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
                 if (column != null)
                 {
-                    JToken jVal = SqlHelpers.DeserializeValue(value, column.StoreType, column.JsonType);
+                    JToken jVal = column.SqlParser.DeserializeValue(value);
                     row[name] = jVal;
                 }
                 else
