@@ -5,6 +5,8 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -74,8 +76,21 @@ namespace Microsoft.WindowsAzure.MobileServices.Query
         {
             Debug.Assert(httpResponse != null);
 
-            JToken response = httpResponse.Content.ParseToJToken(serializerSettings);
-
+            JToken response = null;
+            if (httpResponse.Stream != null)
+            {
+                using (StreamReader sr = new StreamReader(httpResponse.Stream))
+                using (JsonReader reader = new JsonTextReader(sr))
+                {
+                    JsonSerializer serializer = JsonSerializer.CreateDefault(serializerSettings);
+                    response = serializer.Deserialize<JToken>(reader);
+                }
+            }
+            else
+            {
+                response = httpResponse.Content.ParseToJToken(serializerSettings);
+            }
+            
             Uri link = httpResponse.Link != null && httpResponse.Link.Relation == NextRelation ? httpResponse.Link.Uri : null;
             return Parse(response, link, validate);
         }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -215,6 +216,19 @@ namespace Microsoft.WindowsAzure.MobileServices
             requestHeaders = FeaturesHelper.AddFeaturesHeader(requestHeaders, features);
             return this.RequestAsync(true, method, uriPathAndQuery, user, content, ensureResponseContent, requestHeaders, cancellationToken);
         }
+        
+        internal Task<MobileServiceHttpResponse> RequestStreamAsync(HttpMethod method,
+            string uriPathAndQuery,
+            MobileServiceUser user,
+            string content = null,
+            bool ensureResponseContent = true,
+            IDictionary<string, string> requestHeaders = null,
+            MobileServiceFeatures features = MobileServiceFeatures.None,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            requestHeaders = FeaturesHelper.AddFeaturesHeader(requestHeaders, features);
+            return this.RequestAsync(true, method, uriPathAndQuery, user, content, ensureResponseContent, requestHeaders, cancellationToken, true);
+        }
 
         /// <summary>
         /// Makes an HTTP request that includes the standard Mobile Services
@@ -223,39 +237,46 @@ namespace Microsoft.WindowsAzure.MobileServices
         /// </summary>
         /// <param name="UseHandlers">Determines if the HttpClient will use user-defined http handlers</param>
         /// <param name="method">
-        /// The HTTP method used to request the resource.
+        ///     The HTTP method used to request the resource.
         /// </param>
         /// <param name="uriPathAndQuery">
-        /// The URI of the resource to request (relative to the Mobile Services
-        /// runtime).
+        ///     The URI of the resource to request (relative to the Mobile Services
+        ///     runtime).
         /// </param>
         /// <param name="user">
-        /// The object representing the user on behalf of whom the request will be sent.
+        ///     The object representing the user on behalf of whom the request will be sent.
         /// </param>
         /// <param name="content">
-        /// Optional content to send to the resource.
+        ///     Optional content to send to the resource.
         /// </param>
         /// <param name="ensureResponseContent">
-        /// Optional parameter to indicate if the response should include content.
+        ///     Optional parameter to indicate if the response should include content.
         /// </param>
         /// <param name="requestHeaders">
-        /// Additional request headers to include with the request.
+        ///     Additional request headers to include with the request.
         /// </param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> token to observe</param>
+        /// <param name="useStream"></param>
         /// <returns>
         /// The content of the response as a string.
         /// </returns>
         private async Task<MobileServiceHttpResponse> RequestAsync(bool UseHandlers,
-                                                        HttpMethod method,
-                                                        string uriPathAndQuery,
-                                                        MobileServiceUser user,
-                                                        string content = null,
-                                                        bool ensureResponseContent = true,
-                                                        IDictionary<string, string> requestHeaders = null,
-                                                        CancellationToken cancellationToken = default(CancellationToken))
+            HttpMethod method,
+            string uriPathAndQuery,
+            MobileServiceUser user,
+            string content = null,
+            bool ensureResponseContent = true,
+            IDictionary<string, string> requestHeaders = null,
+            CancellationToken cancellationToken = default(CancellationToken), 
+            bool useStream = false)
         {
             Debug.Assert(method != null);
             Debug.Assert(!string.IsNullOrEmpty(uriPathAndQuery));
+
+            if (useStream)
+            {
+                ensureResponseContent = false;
+            }
 
             // Create the request
             HttpContent httpContent = CreateHttpContent(content);
@@ -273,7 +294,6 @@ namespace Microsoft.WindowsAzure.MobileServices
                 client = this.httpClientSansHandlers;
             }
             HttpResponseMessage response = await this.SendRequestAsync(client, request, ensureResponseContent, cancellationToken);
-            string responseContent = await GetResponseContent(response);
             string etag = null;
             if (response.Headers.ETag != null)
             {
@@ -286,11 +306,20 @@ namespace Microsoft.WindowsAzure.MobileServices
                 link = LinkHeaderValue.Parse(response.Headers.GetValues("Link").FirstOrDefault());
             }
 
-            // Dispose of the request and response
-            request.Dispose();
-            response.Dispose();
-
-            return new MobileServiceHttpResponse(responseContent, etag, link);
+            if (useStream)
+            {
+                Stream stream = await GetResponseContentStream(response);
+                request.Dispose();
+                return new MobileServiceHttpResponse(stream, etag, link);
+            }
+            else
+            {
+                string responseContent = await GetResponseContent(response);
+                // Dispose of the request and response
+                request.Dispose();
+                response.Dispose();
+                return new MobileServiceHttpResponse(responseContent, etag, link);
+            }
         }
 
         /// <summary>
@@ -422,6 +451,17 @@ namespace Microsoft.WindowsAzure.MobileServices
             }
 
             return responseContent;
+        }
+        
+        private static async Task<Stream> GetResponseContentStream(HttpResponseMessage response)
+        {
+            Stream responseStream = Stream.Null;
+            if (response.Content != null)
+            {
+                responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            }
+
+            return responseStream;
         }
 
         /// <summary>
@@ -617,7 +657,7 @@ namespace Microsoft.WindowsAzure.MobileServices
             HttpResponseMessage response;
             try
             {
-                response = await client.SendAsync(request, cancellationToken);
+                response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {

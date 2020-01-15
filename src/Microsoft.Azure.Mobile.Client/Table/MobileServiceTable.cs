@@ -179,9 +179,9 @@ namespace Microsoft.WindowsAzure.MobileServices
 
         private async Task<QueryResult> ReadAsync(string uriString, MobileServiceFeatures features)
         {
-            MobileServiceHttpResponse response = await this.MobileServiceClient.HttpClient.RequestAsync(HttpMethod.Get, uriString, this.MobileServiceClient.CurrentUser, null, true, features: this.Features | features);
+            MobileServiceHttpResponse response = await this.MobileServiceClient.HttpClient.RequestStreamAsync(HttpMethod.Get, uriString, this.MobileServiceClient.CurrentUser, null, true, features: this.Features | features);
 
-            return QueryResult.Parse(response, this.MobileServiceClient.SerializerSettings, validate: false);
+            return await Task.Run(() => QueryResult.Parse(response, this.MobileServiceClient.SerializerSettings, validate: false));
         }
 
         /// <summary>
