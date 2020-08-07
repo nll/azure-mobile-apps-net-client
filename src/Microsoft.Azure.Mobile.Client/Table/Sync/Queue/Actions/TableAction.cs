@@ -78,6 +78,6 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         protected abstract Task<bool> HandleDirtyTable();
 
-        protected abstract Task ProcessTableAsync();
+        protected internal abstract Task ProcessTableAsync();
     }
 }

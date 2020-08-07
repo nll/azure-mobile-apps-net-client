@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices.Eventing;
 using Microsoft.WindowsAzure.MobileServices.Query;
+using Microsoft.WindowsAzure.MobileServices.Table.Sync;
 using Microsoft.WindowsAzure.MobileServices.Threading;
 using Newtonsoft.Json.Linq;
 
@@ -247,10 +248,22 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
             using (var store = StoreChangeTrackerFactory.CreateTrackedStore(this.Store, StoreOperationSource.ServerPull, this.storeTrackingOptions, this.client.EventManager, this.settings))
             {
-                var action = new PullAction(table, tableKind, this, queryId, queryDescription, parameters, relatedTables,
-                    this.opQueue, this.settings, store, options, pullOptions, reader, cancellationToken);
+                var action = GetPullAction(table, tableKind, queryId, queryDescription, options, parameters, relatedTables, store, reader, cancellationToken, pullOptions);
                 await this.ExecuteSyncAction(action);
             }
+        }
+
+        private TableAction GetPullAction(MobileServiceTable table, MobileServiceTableKind tableKind, string queryId, MobileServiceTableQueryDescription queryDescription, MobileServiceRemoteTableOptions options, IDictionary<string, string> parameters, IEnumerable<string> relatedTables, IMobileServiceLocalStore store, MobileServiceObjectReader reader, CancellationToken cancellationToken, PullOptions pullOptions)
+        {
+            var splitPullOptions = SplitPullOptions.FromParameters(parameters);
+            if (splitPullOptions.HasValues)
+            {
+                return new SplitPullAction(table, tableKind, this, queryId, queryDescription, parameters, relatedTables,
+                    this.opQueue, this.settings, store, options, pullOptions, reader, splitPullOptions, cancellationToken);
+            }
+
+            return  new PullAction(table, tableKind, this, queryId, queryDescription, parameters, relatedTables,
+                this.opQueue, this.settings, store, options, pullOptions, reader, cancellationToken);
         }
 
         public async Task PurgeAsync(string tableName, MobileServiceTableKind tableKind, string queryId, string query, bool force, CancellationToken cancellationToken)

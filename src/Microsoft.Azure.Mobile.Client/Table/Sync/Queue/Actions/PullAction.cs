@@ -62,7 +62,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             return this.pendingAction ?? Task.FromResult(0);
         }
 
-        protected async override Task ProcessTableAsync()
+        protected internal override async Task ProcessTableAsync()
         {
             await CreatePullStrategy();
 
