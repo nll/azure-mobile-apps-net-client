@@ -2,7 +2,7 @@
 
   <Import Project="..\..\build\Microsoft.Azure.Mobile.Client.Build.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.4;monoandroid80;xamarin.ios10</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;monoandroid80;xamarin.ios10</TargetFrameworks>
     <DefaultLanguage>en-US</DefaultLanguage>
     <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
     <PackageTitle>Azure Mobile Client SDK</PackageTitle>
@@ -50,7 +50,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
   
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.4' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <Compile Include="Platforms\netstandard14\**\*.cs" />
     <PackageReference Include="System.IO.IsolatedStorage" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
@@ -60,7 +60,7 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'monoandroid80' ">
     <Reference Include="System.Runtime.Serialization" />
     <PackageReference Include="PCLCrypto" Version="2.0.147" />
-    <PackageReference Include="Xamarin.Android.Support.CustomTabs" Version="23.3.0" />
+    <PackageReference Include="Xamarin.Android.Support.CustomTabs" Version="26.1.0.1" />
     <AndroidResource Include="..\External\Xamarin.Auth\source\Xamarin.Auth.XamarinAndroid\Resources\**\*.xml" />
     <AndroidResource Include="..\External\Xamarin.Auth\source\Xamarin.Auth.XamarinAndroid\Resources\**\*.png" />
     <Compile Include="..\External\Xamarin.Auth\source\Xamarin.Auth.LinkSource\**\*.cs" Exclude="**\AssemblyInfo.cs;**\*.Portable.cs;**\*.netfx.cs;**\*.netfx45.cs;**\*.net45.cs;**\*.LinkSource.cs" />

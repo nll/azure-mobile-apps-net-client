@@ -14,6 +14,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         private readonly MobileServiceRemoteTableOptions options;
         private readonly PullOptions pullOptions;
         private readonly MobileServiceObjectReader reader;
+        
+        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(2);
 
         private readonly SplitPullOptions splitPullOptions;
         
@@ -59,11 +61,30 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
 
         protected internal override Task ProcessTableAsync()
         {
+            var tasks = new List<Task>();
             var actions = splitPullOptions.FieldValues.Select(GeneratePullAction);
-            return Task.WhenAll(actions.Select(it => it.ProcessTableAsync()));
+            foreach (var action in actions)
+            {
+                tasks.Add(RunAction(action));
+            }
+
+            return Task.WhenAll(tasks);
         }
 
-        private PullAction GeneratePullAction(string value)
+        private async Task RunAction(PullAction pullAction)
+        {
+            await semaphoreSlim.WaitAsync();
+            try
+            {
+                await pullAction.ProcessTableAsync();
+            }
+            finally
+            {
+                semaphoreSlim.Release();
+            }
+        }
+
+        private PullAction GeneratePullAction(int value)
         {
             var query = Query.Clone();
 

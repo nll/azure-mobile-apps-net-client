@@ -6,13 +6,13 @@ namespace Microsoft.WindowsAzure.MobileServices.Table.Sync
 {
     public class SplitPullOptions
     {
-        private static readonly SplitPullOptions Empty = new SplitPullOptions(string.Empty, string.Empty, Enumerable.Empty<string>());
+        private static readonly SplitPullOptions Empty = new SplitPullOptions(string.Empty, string.Empty, Enumerable.Empty<int>());
 
-        public SplitPullOptions(string fieldName, string queryFieldPrefix, IEnumerable<string> fieldValues)
+        public SplitPullOptions(string fieldName, string queryFieldPrefix, IEnumerable<int> fieldValues)
         {
             FieldName = fieldName;
             QueryFieldPrefix = queryFieldPrefix;
-            FieldValues = new List<string>(fieldValues);
+            FieldValues = new List<int>(fieldValues);
         }
 
         private const string FieldNameKey = "X-SPLIT-FIELD-NAME";
@@ -23,7 +23,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Table.Sync
 
         public string QueryFieldPrefix { get; }
 
-        public IList<string> FieldValues { get; }
+        public IList<int> FieldValues { get; }
 
         public bool HasValues => !string.IsNullOrEmpty(FieldName) && 
                                  !string.IsNullOrEmpty(QueryFieldPrefix) &&
@@ -65,11 +65,26 @@ namespace Microsoft.WindowsAzure.MobileServices.Table.Sync
             var hasFieldValues  = parameters.TryGetValue(FieldValuesKey, out var fieldValuesString);
             if (hasFieldName && hasQueryFieldPrefix && hasFieldValues)
             {
-                var fieldValues = fieldValuesString.Split(',').Select(it=>it.Trim()).Where(string.IsNullOrEmpty); 
+                var fieldValues = fieldValuesString.Split(',')
+                    .Select(it=>it.Trim())
+                    .Where(it => !string.IsNullOrEmpty(it))
+                    .Select(int.Parse); 
                 return new SplitPullOptions(fieldName, queryFieldPrefix, fieldValues);
             }
 
             return Empty;
+        }
+
+        internal static void ClearParameters(IDictionary<string, string> parameters)
+        {
+            if (parameters == null)
+            {
+                return;
+            }
+
+            parameters.Remove(FieldNameKey);
+            parameters.Remove(QueryFieldPrefixKey);
+            parameters.Remove(FieldValuesKey);
         }
     }
 }

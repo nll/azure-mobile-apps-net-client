@@ -256,6 +256,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         private TableAction GetPullAction(MobileServiceTable table, MobileServiceTableKind tableKind, string queryId, MobileServiceTableQueryDescription queryDescription, MobileServiceRemoteTableOptions options, IDictionary<string, string> parameters, IEnumerable<string> relatedTables, IMobileServiceLocalStore store, MobileServiceObjectReader reader, CancellationToken cancellationToken, PullOptions pullOptions)
         {
             var splitPullOptions = SplitPullOptions.FromParameters(parameters);
+            SplitPullOptions.ClearParameters(parameters);
             if (splitPullOptions.HasValues)
             {
                 return new SplitPullAction(table, tableKind, this, queryId, queryDescription, parameters, relatedTables,

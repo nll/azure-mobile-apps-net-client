@@ -62,7 +62,7 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             return true;
         }
 
-        protected override async Task ProcessTableAsync()
+        protected internal override async Task ProcessTableAsync()
         {
             if (!String.IsNullOrEmpty(this.QueryId))
             {
