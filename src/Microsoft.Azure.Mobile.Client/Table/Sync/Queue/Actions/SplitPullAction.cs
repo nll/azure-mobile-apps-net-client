@@ -15,7 +15,8 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
         private readonly PullOptions pullOptions;
         private readonly MobileServiceObjectReader reader;
         
-        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(2);
+        private readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(4);
+        private readonly Random random = new Random();
 
         private readonly SplitPullOptions splitPullOptions;
         
@@ -76,6 +77,11 @@ namespace Microsoft.WindowsAzure.MobileServices.Sync
             await semaphoreSlim.WaitAsync();
             try
             {
+                var delaySeed = semaphoreSlim.CurrentCount;
+                if (delaySeed > 0)
+                {
+                    await Task.Delay(delaySeed * 100 + random.Next(50));
+                }
                 await pullAction.ProcessTableAsync();
             }
             finally
