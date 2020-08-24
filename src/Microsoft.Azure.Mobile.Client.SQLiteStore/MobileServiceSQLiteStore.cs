@@ -399,12 +399,11 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
             ValidateParameterCount(columns.Count);
 
             string sqlBase = String.Format("UPDATE {0} SET ", SqlHelpers.FormatTableName(tableName));
-
+            var sql = new StringBuilder();
+            var parameters = new Dictionary<string, object>();
             foreach (JObject item in items)
             {
-                var sql = new StringBuilder(sqlBase);
-                var parameters = new Dictionary<string, object>();
-
+                sql.Append(sqlBase);
                 ColumnDefinition idColumn = columns.FirstOrDefault(c => c.Name.Equals(MobileServiceSystemColumns.Id));
                 if (idColumn == null)
                 {
@@ -428,6 +427,9 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                 sql.AppendFormat(" WHERE {0} = {1}", SqlHelpers.FormatMember(MobileServiceSystemColumns.Id), AddParameter(item, parameters, idColumn));
 
                 this.ExecuteNonQueryInternal(sql.ToString(), parameters);
+
+                sql.Clear();
+                parameters.Clear();
             }
         }
 
@@ -447,11 +449,11 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
 
             // Use int division to calculate how many times this record will fit into our parameter quota
             int batchSize = ValidateParameterCount(columns.Count);
-
+            var sql = new StringBuilder();
+            var parameters = new Dictionary<string, object>();
             foreach (var batch in items.Split(maxLength: batchSize))
             {
-                var sql = new StringBuilder(sqlBase);
-                var parameters = new Dictionary<string, object>();
+                sql.Append(sqlBase);
 
                 foreach (JObject item in batch)
                 {
@@ -464,6 +466,9 @@ namespace Microsoft.WindowsAzure.MobileServices.SQLiteStore
                     sql.Remove(sql.Length - 1, 1); // remove the trailing comma
                     this.ExecuteNonQueryInternal(sql.ToString(), parameters);
                 }
+
+                sql.Clear();
+                parameters.Clear();
             }
         }
 
